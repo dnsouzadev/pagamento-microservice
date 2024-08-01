@@ -1,20 +1,25 @@
 package br.com.dnsouzadev.pagamentos.service;
 
-import br.com.dnsouzadev.pagamentos.dto.PagamentoDto;
-import br.com.dnsouzadev.pagamentos.model.Pagamento;
-import br.com.dnsouzadev.pagamentos.model.Status;
-import br.com.dnsouzadev.pagamentos.repository.PagamentoRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import br.com.dnsouzadev.pagamentos.dto.PagamentoDto;
+import br.com.dnsouzadev.pagamentos.http.PedidoClient;
+import br.com.dnsouzadev.pagamentos.model.Pagamento;
+import br.com.dnsouzadev.pagamentos.model.Status;
+import br.com.dnsouzadev.pagamentos.repository.PagamentoRepository;
+
 @Service
 public class PagamentoService {
 
     @Autowired
     private PagamentoRepository repository;
+
+    @Autowired
+    private PedidoClient pedidoClient;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -44,5 +49,12 @@ public class PagamentoService {
 
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    public void confirmarPagamento(Long id) {
+        Pagamento pagamento = repository.findById(id).orElseThrow();
+        pagamento.setStatus(Status.CONFIRMADO);
+        repository.save(pagamento);
+        pedidoClient.atualizaPagamento(id);
     }
 }
